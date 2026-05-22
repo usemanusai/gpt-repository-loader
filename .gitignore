@@ -3,23 +3,40 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+build/
+dist/
+.eggs/
 
-# Output file
+# Output files produced by gpt-repository-loader
 output.txt
+output.txt.gz
+output.zip
+output.bundle
+output.chunk*.txt
 
 # Unit test artifacts
 .coverage
-.coverage.
+.coverage.*
 htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
 
 # Virtual environment
 venv/
-*.egg-info/
+.venv/
+env/
+ENV/
 
 # Jupyter Notebook
 .ipynb_checkpoints/
 
-# Miscellaneous
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
 *.swp
 *.swo
 *.swn

@@ -1,18 +1,133 @@
+# Python build & cache artifacts
 __pycache__/
 *.pyc
-*.log
-.git/*
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Test / coverage caches
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Git internals & VCS
+.git/
+.gitattributes
+.gitmodules
+
+# gpt-repository-loader meta
 .gptignore
+.gptbundle/
+output.txt
+output.txt.gz
+output.zip
+output.bundle
+output.chunk*.txt
+
+# Project files we explicitly skip from bundles
 LICENSE
-.github/*
-.tox/*
-.mypy_cache/*
+.github/
+.gitlab/
+.circleci/
+
+# Lock & vendor directories
+node_modules/
+bower_components/
+vendor/
+target/
+out/
+.next/
+.nuxt/
+
+# Editor / OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+
+# Logs
+*.log
+logs/
+
+# Archives & binaries (heuristic; binary detector also handles these)
 *.whl
 *.tar
 *.tar.gz
-.gitignore
-*.env*
+*.tar.bz2
+*.tar.xz
+*.tgz
+*.zip
+*.7z
+*.rar
+*.gz
+*.bz2
+*.xz
+*.dmg
+*.iso
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.o
+*.obj
+*.class
+*.jar
+*.war
+*.ear
+*.pyc
+*.pyo
+
+# Media
 *.png
-*.jpeg
 *.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.ico
+*.webp
+*.svg
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.m4a
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.pdf
+
+# Secrets / env
+*.env
+*.env.*
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.cer
+
+# Common bin/lib output dirs
 *bin/*

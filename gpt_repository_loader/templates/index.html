@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>gpt-repository-loader</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>gpt-repository-loader</h1>
+    <p class="subtitle">Bundle a Git repository into a single text block your LLM can read.</p>
+  </header>
+
+  <main class="layout">
+    <section class="card config">
+      <h2>1. Source</h2>
+      <form id="bundle-form" enctype="multipart/form-data">
+        <fieldset>
+          <legend>Repository</legend>
+          <label for="repo">Local path or remote URL</label>
+          <input id="repo" name="repo" type="text"
+                 placeholder="/path/to/repo or https://github.com/owner/repo" />
+          <label for="upload">… or upload an archive (.zip, .tar.gz)</label>
+          <input id="upload" name="upload" type="file" accept=".zip,.tar,.tar.gz,.tgz,.tar.bz2,.tar.xz" />
+        </fieldset>
+
+        <fieldset>
+          <legend>Preamble</legend>
+          <textarea id="preamble_text" name="preamble_text" rows="4"
+                    placeholder="Leave empty to use the default preamble"></textarea>
+          <label class="checkbox">
+            <input type="checkbox" id="preamble_stats" name="preamble_stats" />
+            Append bundle stats to preamble
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Ignore rules</legend>
+          <label for="exclude">Extra <code>.gitignore</code>-style excludes (one per line)</label>
+          <textarea id="exclude" name="exclude" rows="3"
+                    placeholder="docs/legacy/&#10;*.proto"></textarea>
+          <label for="include">Forced includes (one per line, equivalent to <code>!pattern</code>)</label>
+          <textarea id="include" name="include" rows="2"
+                    placeholder="!docs/important.md"></textarea>
+          <div class="grid two">
+            <label class="checkbox">
+              <input type="checkbox" id="include_gitignore" name="include_gitignore" checked />
+              Honour <code>.gitignore</code>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="include_gptignore" name="include_gptignore" checked />
+              Honour <code>.gptignore</code>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="skip_binary" name="skip_binary" checked />
+              Skip binary files
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="follow_symlinks" name="follow_symlinks" />
+              Follow symlinks
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="tracked_only" name="tracked_only" />
+              Tracked-by-git only
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="use_git_check_ignore" name="use_git_check_ignore" />
+              Honour <code>git check-ignore</code>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Output</legend>
+          <div class="grid two">
+            <label class="checkbox">
+              <input type="checkbox" id="compress" name="compress" />
+              Compress file contents (gzip+base64)
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="chunk" name="chunk" />
+              Chunk if over token limit
+            </label>
+          </div>
+          <label for="model">Target model</label>
+          <select id="model" name="model">
+            <option value="">(none / fallback estimator)</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            <option value="gpt-4">gpt-4</option>
+            <option value="gpt-4-32k">gpt-4-32k</option>
+            <option value="gpt-4-turbo">gpt-4-turbo</option>
+            <option value="gpt-4o">gpt-4o</option>
+            <option value="gpt-4o-mini">gpt-4o-mini</option>
+            <option value="claude-3-5-sonnet">claude-3-5-sonnet</option>
+            <option value="claude-3-opus">claude-3-opus</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+          </select>
+          <label for="token_limit">Token limit</label>
+          <input id="token_limit" name="token_limit" type="number" min="0" step="1000"
+                 placeholder="0 = unlimited (or model default)" />
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" id="run-button">Run bundle</button>
+          <button type="button" id="download-text">Download .txt</button>
+          <button type="button" id="download-zip">Download .zip</button>
+          <button type="button" id="download-json">Download .json</button>
+          <button type="button" id="copy-clipboard">Copy to clipboard</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card result">
+      <h2>2. Result</h2>
+      <div id="status" class="status">Idle.</div>
+      <div class="grid stats">
+        <div><strong id="stat-files">0</strong><span>files</span></div>
+        <div><strong id="stat-ignored">0</strong><span>ignored</span></div>
+        <div><strong id="stat-tokens">0</strong><span>tokens</span></div>
+        <div><strong id="stat-method">-</strong><span>backend</span></div>
+      </div>
+      <details open>
+        <summary>Bundle output</summary>
+        <textarea id="bundle-output" readonly rows="20"></textarea>
+      </details>
+      <details>
+        <summary>Ignored files report</summary>
+        <table id="ignored-table">
+          <thead><tr><th>Path</th><th>Reason</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </details>
+      <details>
+        <summary>Discovered ignore files</summary>
+        <ul id="discovered-list"></ul>
+      </details>
+      <details>
+        <summary>Warnings</summary>
+        <ul id="warnings-list"></ul>
+      </details>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

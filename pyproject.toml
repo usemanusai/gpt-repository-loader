@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpt-repository-loader"
+version = "1.0.0"
+description = "Convert the contents of a Git repository into a single text bundle suitable for large language model context windows."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+authors = [
+    { name = "gpt-repository-loader contributors" },
+]
+keywords = [
+    "gpt",
+    "openai",
+    "llm",
+    "repository",
+    "git",
+    "context",
+    "bundle",
+    "prompt",
+    "code",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.optional-dependencies]
+git = [
+    "GitPython>=3.1.40",
+]
+tokens = [
+    "tiktoken>=0.5.0",
+]
+clipboard = [
+    "pyperclip>=1.8.2",
+]
+web = [
+    "Flask>=2.3.0",
+    "Werkzeug>=2.3.0",
+]
+all = [
+    "GitPython>=3.1.40",
+    "tiktoken>=0.5.0",
+    "pyperclip>=1.8.2",
+    "Flask>=2.3.0",
+    "Werkzeug>=2.3.0",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "build>=1.0",
+]
+
+[project.scripts]
+gpt-repository-loader = "gpt_repository_loader.cli:main"
+gpt-repo = "gpt_repository_loader.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/mpoon/gpt-repository-loader"
+Repository = "https://github.com/mpoon/gpt-repository-loader"
+Issues = "https://github.com/mpoon/gpt-repository-loader/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gpt_repository_loader*"]
+exclude = ["tests*", "test_data*"]
+
+[tool.setuptools.package-data]
+gpt_repository_loader = [
+    "templates/*.html",
+    "static/*.css",
+    "static/*.js",
+    "data/.gptignore",
+    "data/*",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests", "."]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+# UP006 / UP007 / UP035 / UP045 require typing syntax introduced in Python 3.9+
+# / 3.10+. We support 3.8 and rely on ``from __future__ import annotations`` to
+# keep the modern style readable without breaking the older runtime.
+ignore = ["E501", "UP006", "UP007", "UP035", "UP045"]
