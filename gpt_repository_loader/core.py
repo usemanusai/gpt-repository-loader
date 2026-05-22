@@ -378,9 +378,12 @@ def process_repository(
         for file in files:
             file_path = os.path.join(root, file)
             relative_file_path = os.path.relpath(file_path, repo_path)
+            # Normalise to forward slashes so that bundles produced on Windows
+            # match the same layout LLMs (and our test fixtures) expect.
+            normalized = relative_file_path.replace(os.sep, "/")
             if not should_ignore(relative_file_path, list(ignore_list)):
                 with open(file_path, errors="ignore") as fh:
                     contents = fh.read()
                 output_file.write("-" * 4 + "\n")
-                output_file.write(f"{relative_file_path}\n")
+                output_file.write(f"{normalized}\n")
                 output_file.write(f"{contents}\n")
