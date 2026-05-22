@@ -1,8 +1,9 @@
-import unittest
 import os
-import tempfile
 import shutil
-from gpt_repository_loader import process_repository, get_ignore_list
+import tempfile
+import unittest
+
+from gpt_repository_loader import get_ignore_list, process_repository
 
 
 class TestGPTRepositoryLoader(unittest.TestCase):
@@ -28,7 +29,7 @@ class TestGPTRepositoryLoader(unittest.TestCase):
            process_repository(self.example_repo_path, ignore_list, output_file)
 
        # Compare the output to the expected output
-       with open(output_file_path, 'r') as output_file, open(expected_output_file_path, 'r') as expected_output_file:
+       with open(output_file_path) as output_file, open(expected_output_file_path) as expected_output_file:
            self.assertEqual(output_file.read(), expected_output_file.read())
 
        # Clean up the output file

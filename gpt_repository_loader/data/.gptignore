@@ -1,0 +1,167 @@
+# Default fallback ignore patterns used when the target repository has no
+# .gptignore of its own. Patterns follow .gitignore semantics including
+# negation (!), leading-slash anchoring, and directory-only trailing slashes.
+
+# --- VCS / Capy metadata --------------------------------------------------
+.git/
+.gitattributes
+.gitmodules
+.gptignore
+.gptbundle/
+.hg/
+.svn/
+.bzr/
+CVS/
+
+# --- Python ---------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+build/
+dist/
+.tox/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+venv/
+.venv/
+env/
+ENV/
+*.whl
+*.egg
+*.pkl
+*.pickle
+
+# --- JavaScript / Node ---------------------------------------------------
+node_modules/
+bower_components/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.parcel-cache/
+.eslintcache
+
+# --- Rust / Go / Java / .NET ---------------------------------------------
+target/
+Cargo.lock
+go.sum
+*.class
+*.jar
+*.war
+*.ear
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# --- IDE / OS noise -------------------------------------------------------
+.idea/
+.vscode/
+*.iml
+*.suo
+*.user
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*.swn
+*~
+
+# --- Output files we produce ourselves -----------------------------------
+output.txt
+output.txt.gz
+output.zip
+output.bundle
+output.chunk*.txt
+
+# --- Compiled / binary artifacts -----------------------------------------
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
+*.gz
+*.bz2
+*.xz
+*.zip
+*.7z
+*.rar
+*.iso
+*.dmg
+
+# --- Images, audio, video, fonts -----------------------------------------
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.ico
+*.webp
+*.svg
+*.psd
+*.ai
+*.heic
+*.heif
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.m4a
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.pdf
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+
+# --- Secrets / env --------------------------------------------------------
+.env
+.env.*
+*.env
+*.env.*
+*.pem
+*.key
+*.crt
+*.cer
+
+# --- Logs -----------------------------------------------------------------
+*.log
+logs/
+
+# --- LICENSE (legal text, low LLM value) ---------------------------------
+LICENSE
+LICENSE.*
+COPYING
+COPYING.*
+
+# --- CI metadata ---------------------------------------------------------
+.github/
+.gitlab/
+.circleci/
+.travis.yml
+.appveyor.yml
+azure-pipelines.yml

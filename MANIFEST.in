@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include .gptignore
+recursive-include gpt_repository_loader *.html *.css *.js
+recursive-include gpt_repository_loader/data *
+include gpt_repository_loader/data/.gptignore
