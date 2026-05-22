@@ -60,16 +60,64 @@ class RemoteRepository:
             shutil.rmtree(directory, ignore_errors=True)
 
 
-def _classify_url(url: str) -> str:
+def _file_url_to_path(url: str) -> str:
+    """Convert a ``file://`` URL into an OS-native filesystem path.
+
+    Handles three common shapes:
+
+    * POSIX: ``file:///abs/path``        -> ``/abs/path``
+    * Windows proper: ``file:///C:/x``   -> ``C:\\x``
+    * Windows malformed: ``file://C:\\x`` -> ``C:\\x`` (we tolerate this because
+      ``pathlib.Path.as_uri`` was only standardised for Windows in 3.13 and
+      many call sites still emit the malformed form).
+
+    Non-file URLs are returned unchanged so callers can chain this through
+    classification helpers without first checking the scheme.
+    """
+    if not url.lower().startswith("file:"):
+        return url
     parsed = urllib.parse.urlparse(url)
-    path_lower = parsed.path.lower()
-    if any(path_lower.endswith(ext) for ext in _ARCHIVE_EXTENSIONS):
+    if parsed.scheme != "file":
+        return url
+    netloc = parsed.netloc
+    path = urllib.parse.unquote(parsed.path)
+    if os.name == "nt":
+        # Tolerate the malformed ``file://C:\foo`` form by merging netloc
+        # back into the path.
+        if netloc and len(netloc) >= 2 and netloc[1] == ":":
+            return netloc + path
+        # Proper ``file:///C:/foo`` form: drop the leading slash before the
+        # drive letter so we end up with ``C:/foo``.
+        if len(path) >= 3 and path[0] == "/" and path[2] == ":":
+            return path[1:].replace("/", os.sep)
+        return path.replace("/", os.sep)
+    # POSIX: leading slash is already part of the absolute path.
+    return path
+
+
+def _is_archive_path(path: str) -> bool:
+    lower = path.lower()
+    return any(lower.endswith(ext) for ext in _ARCHIVE_EXTENSIONS)
+
+
+def _classify_url(url: str) -> str:
+    if url.lower().startswith("file:"):
+        local_path = _file_url_to_path(url)
+        if _is_archive_path(local_path):
+            return "archive"
+        if os.path.isdir(local_path):
+            return "local"
+        if os.path.isfile(local_path):
+            return "archive"  # non-archive single file - extractor will reject
+        raise ValueError(f"file:// URL does not resolve to a path: {url!r}")
+    parsed = urllib.parse.urlparse(url)
+    if _is_archive_path(parsed.path):
         return "archive"
     if _RAW_GIT_PATTERN.match(url) or url.startswith("git@") or url.endswith(".git"):
         return "git"
     if _GIT_HOST_PATTERN.match(url):
         return "git-host"
-    if parsed.scheme in {"file", ""} and os.path.isdir(parsed.path):
+    if parsed.scheme == "" and os.path.isdir(parsed.path):
         return "local"
     raise ValueError(f"Cannot determine how to load URL: {url!r}")
 
@@ -91,29 +139,46 @@ def _download_to_tempfile(url: str) -> str:
     """Download ``url`` to a temporary file and return its path."""
     suffix = ""
     parsed = urllib.parse.urlparse(url)
+    candidate = parsed.path if not url.lower().startswith("file:") else _file_url_to_path(url)
     for ext in _ARCHIVE_EXTENSIONS:
-        if parsed.path.lower().endswith(ext):
+        if candidate.lower().endswith(ext):
             suffix = ext
             break
     fd, tmp_path = tempfile.mkstemp(suffix=suffix, prefix="gptrepo-download-")
     os.close(fd)
-    with urllib.request.urlopen(url) as response, open(tmp_path, "wb") as out:
-        shutil.copyfileobj(response, out)
+    if url.lower().startswith("file:"):
+        # Bypass urllib's quirky Windows file:// handling and copy directly.
+        src = _file_url_to_path(url)
+        with open(src, "rb") as response, open(tmp_path, "wb") as out:
+            shutil.copyfileobj(response, out)
+    else:
+        with urllib.request.urlopen(url) as response, open(tmp_path, "wb") as out:
+            shutil.copyfileobj(response, out)
     return tmp_path
 
 
 def _extract_archive(archive_path: str) -> str:
     """Extract an archive into a temporary directory and return that path."""
     extract_dir = tempfile.mkdtemp(prefix="gptrepo-archive-")
+    extract_dir_abs = os.path.abspath(extract_dir)
     if archive_path.lower().endswith(".zip"):
         with zipfile.ZipFile(archive_path) as zf:
+            for name in zf.namelist():
+                normalized = os.path.normpath(name)
+                if os.path.isabs(normalized) or normalized.startswith(".."):
+                    raise RuntimeError(
+                        f"Refusing to extract path outside target dir: {name}"
+                    )
             zf.extractall(extract_dir)
     elif tarfile.is_tarfile(archive_path):
         with tarfile.open(archive_path) as tf:
             # Guard against absolute / parent traversal in tarballs.
             for member in tf.getmembers():
-                member_path = os.path.normpath(os.path.join(extract_dir, member.name))
-                if not member_path.startswith(extract_dir + os.sep) and member_path != extract_dir:
+                normalized = member.name.replace("\\", "/").lstrip("/")
+                resolved = os.path.abspath(os.path.join(extract_dir_abs, normalized))
+                if resolved != extract_dir_abs and not resolved.startswith(
+                    extract_dir_abs + os.sep
+                ):
                     raise RuntimeError(
                         f"Refusing to extract path outside target dir: {member.name}"
                     )
@@ -146,8 +211,8 @@ def open_remote(
     cleanup_dirs: list = []
     try:
         if kind == "local":
-            parsed = urllib.parse.urlparse(url)
-            yield RemoteRepository(url=url, path=parsed.path, kind="local")
+            local_path = _file_url_to_path(url) if url.lower().startswith("file:") else url
+            yield RemoteRepository(url=url, path=local_path, kind="local")
             return
 
         if kind == "archive":
