@@ -105,10 +105,11 @@ def _extract_upload(file_storage) -> str:
     file_storage.save(archive_path)
     extract_dir = os.path.join(tmpdir, "src")
     os.makedirs(extract_dir, exist_ok=True)
+    extract_dir_abs = os.path.abspath(extract_dir)
     if archive_path.lower().endswith(".zip"):
         with zipfile.ZipFile(archive_path) as zf:
             for member in zf.namelist():
-                normalized = os.path.normpath(member)
+                normalized = os.path.normpath(member.replace("\\", "/"))
                 if normalized.startswith("..") or os.path.isabs(normalized):
                     shutil.rmtree(tmpdir, ignore_errors=True)
                     raise ValueError(f"Unsafe path in archive: {member!r}")
@@ -117,8 +118,13 @@ def _extract_upload(file_storage) -> str:
         import tarfile
         with tarfile.open(archive_path) as tf:
             for member in tf.getmembers():
-                target = os.path.normpath(os.path.join(extract_dir, member.name))
-                if not target.startswith(extract_dir):
+                normalized = member.name.replace("\\", "/").lstrip("/")
+                resolved = os.path.abspath(
+                    os.path.join(extract_dir_abs, normalized)
+                )
+                if resolved != extract_dir_abs and not resolved.startswith(
+                    extract_dir_abs + os.sep
+                ):
                     shutil.rmtree(tmpdir, ignore_errors=True)
                     raise ValueError(f"Unsafe path in archive: {member.name!r}")
             tf.extractall(extract_dir)
